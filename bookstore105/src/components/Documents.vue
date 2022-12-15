@@ -1,4 +1,6 @@
 <script setup>
+import { onBeforeMount, ref ,onMounted} from "vue";
+
 const props = defineProps({
   customers: {
     type: Object,
@@ -15,72 +17,83 @@ const props = defineProps({
   listitems: {
     type: Array,
     required: true
+  },
+  data:{
+    type: Number,
+    required: true
   }
 });
+
 // console.log("efewf")
 console.log("book" + props.books)
+console.log(props.data)
+// console.log(countResult.value)
 </script>
 
 <template>
-<div class="overflow-x-auto relative" v-if="qryId == 1">
-  <span v-for="(doc) in books" :key="doc.id">
-  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-              <th scope="col" class="py-3 px-6">Book Name</th>
-              <th scope="col" class="py-3 px-6">Book Price</th>
-          </tr>
-      </thead>
-      <tbody>
-          <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-              <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">{{doc.bookname}}</th>
-              <td class="py-4 px-6">{{doc.bookprice}} THB.</td>
-          </tr>
-      </tbody>
-  </table>
-</span>
-</div>
-<div class="overflow-x-auto relative" v-if="qryId == 2">
-  <span v-for="(doc) in customers" :key="doc.id">
-  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-              <th>Firstname - Lastname</th>
-              <th class="text-left">{{doc.firstname}} {{doc.lastname}}</th>
-              <!-- <th scope="col" class="py-3 px-6">Lastname</th> -->
-          </tr>
-      </thead>
-  </table>
-</span>
-</div>
-<div v-if="qryId == 3">
-  <span v-for="(doc) in listitems" :key="doc.id">
-  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-      <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-          <tr>
-              <th >Name</th>
-              <td >{{doc.purchased.name}}</td>
-              <th >Status Payment</th>
-              <td >{{doc.paymentstatus}}</td>
-          </tr>
-      </thead>
-  </table>
-</span>
-</div>
   <div>
+      <span v-for="(doc) in books" :key="doc.id">
+        <div v-if="qryId == 1">
+          Bookname : {{doc.bookname}} <br>
+          Bookprice : {{doc.bookprice}} THB.
+        </div>
+      </span>
+      {{doc}}
+    <span v-for="(doc) in customers" :key="doc.id">
+      <div v-if="qryId == 2">
+        Firstname - Lastname : {{doc.firstname}} {{doc.lastname}}
+      </div> 
+    </span>
+    <span v-if="qryId == 3">CountResult : {{data}}</span>
+    <span v-for="(doc) in listitems" :key="doc.id">
+      <div v-if="qryId == 3">
+        Name : {{doc.purchased.name}} ,
+        Status Payment :{{doc.paymentstatus}} 
+      </div> 
+    </span>
+    <span v-for="(doc) in books" :key="doc.id">
+      <div v-if="qryId == 4">
+        Bookname : {{doc.bookname}} ,
+        Max-BookPage :{{doc.bookpage}} 
+        <!-- {{doc}} -->
+      </div> 
+    </span>
+    <span v-for="(doc) in books" :key="doc.id">
+      <div v-if="qryId == 5">
+        Bookname : {{doc.bookname}} ,
+        Min-BookPage :{{doc.bookpage}} 
+        <!-- {{doc}} -->
+      </div> 
+    </span>
       <span v-for="doc in books" :key="doc.id">
-        <div v-if="qryId == 5">
+        <div v-if="qryId == 6">
         Bookname : {{doc.bookname}} , 
         Author : {{doc.author}} ,
         Bookprice : {{doc.bookprice}}
       </div>
     </span>
-    <span v-for="doc in books" :key="doc.id">
+    <span v-for="(doc) in listitems" :key="doc.id">
       <div v-if="qryId == 7">
-        Bookname : {{doc.bookname}} , 
+        BookName : {{doc.purchased.name}} ,
+        BookId : {{doc.purchased.bookid}} ,
+        Bookprice :{{doc.purchased.bookprice}} 
+      </div> 
+    </span>
+    <span v-for="doc in books" :key="doc.id">
+      <div v-if="qryId == 8">
+        BookId : {{doc.bookid}} , 
         Bookprice : {{doc.bookprice}}
       </div>
     </span>
+      <div v-if="qryId == 9">
+        Total Price : {{data}}
+      </div>
+      <span v-for="doc in books" :key="doc.id">
+        <div v-if="qryId == 10">
+          Bookname : {{doc.bookname}} , 
+          Bookpage : {{doc.bookpage}}
+        </div>
+      </span>
   </div> 
   </template>
 

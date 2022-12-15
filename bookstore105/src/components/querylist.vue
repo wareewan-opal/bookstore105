@@ -1,27 +1,33 @@
 <script setup>
 import { RouterLink, RouterView } from "vue-router";
 import { useRoute } from "vue-router";
-import { ref, onMounted, watch} from "vue";
+import { ref, onMounted, watch, reactive} from "vue";
 import { collection, query, where, getDocs, orderBy, limit} from "firebase/firestore";
 import db from "../firebase/init.js";
 import Documents from "./Documents.vue";
+import { getCountFromServer } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
+
 
 const route = useRoute();
 const topic = ref("")
 const books = ref([])
 const customers = ref([])
 const listitems = ref([])
-let qryId;
+const state = reactive({showAgg: false , qryId: 1})
+let qryId ;
+const aggData = ref(0)
+const isTable = ref(true)
 
 async function getQuery(){
-    
+    isTable.value = true
     qryId = route.params.id
     console.log(qryId)
     books.value = []
+    state.showAgg = false
     let qry = null
     let qrybook = null
     let qrycustomer = null
-    let qrycustomer2 = null
     let qrylistitem = null
 
     if(qryId == 1){
@@ -42,45 +48,83 @@ async function getQuery(){
         const listitemsRef = collection(db, "listitems")
         qrylistitem = query(listitemsRef ,where("paymentstatus","==",false))
         console.log(qrylistitem)
-    }
-    else if (qryId == 4)
-    {
+        isTable.value = false
+        const querySnap = await getCountFromServer(qrylistitem);
+        aggData.value = querySnap.data().count;
+        console.log(aggData.value)
+    }else if (qryId == 4){
         console.log("No.4")
-        topic.value = "List Customers who have not placed an order."
-        // const customersRef = collection(db, "customers")
-        // qrycustomer = query(customersRef ,where("firstname","==",false))
-        // console.log(qrylistitem)
-
-        const q = query(collection(db, "customers"));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach( async (doc)  => {
-  
-        const q = query(collection(db, "listitems"),where("purchased.name","==","Kanyapat"));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((doc2) => {
-        // doc.data() is never undefined for query doc snapshots
-        // console.log("xxxxx")
-        });
-    })
-    }
-    
-    if (qryId == 5){
+        topic.value = "Find Max for bookpage"
+        const booksRef = collection(db, "books")
+        qrybook = query(booksRef, orderBy("bookpage","desc"),limit(1))
+        console.log(qrybook)
+        let page = ref()
+        const querySnap = await getDocs(qrybook)
+        querySnap.forEach((doc) => {
+            page.value = doc.data().bookpage
+            console.log(doc.data())
+        })
+        console.log(page.value)
+        qrybook = query(booksRef, where("bookpage","==",page.value))
+    }if(qryId == 5){
         console.log("No.5")
+        topic.value = "Find Min for bookpage"
+        const booksRef = collection(db, "books")
+        qrybook = query(booksRef, orderBy("bookpage","asc"),limit(1))
+        console.log(qrybook)
+        let page = ref()
+        const querySnap = await getDocs(qrybook)
+        querySnap.forEach((doc) => {
+            page.value = doc.data().bookpage
+            console.log(doc.data())
+        })
+        console.log(page.value)
+        qrybook = query(booksRef, where("bookpage","==",page.value))
+    }
+    if (qryId == 6){
+        console.log("No.6")
         topic.value = "List bookname and author with price < 250."
         const booksRef = collection(db, "books")
         qrybook = query(booksRef , where("bookprice", "<", 250))
         console.log(qrybook)
-    }else if (qryId == 6){
-        // console.log("No.6")
-        // topic.value = "Show Customers who have orders for &gt; 1 book"
-        // const booksRef = collection(db, "books")
-        // const customersRef = collection(db, "customers")
-        // qrybook = query(booksRef , where("", "<", 250))
-        // console.log(qrybook)
-    }else if(qryId == 7){
+    }else if (qryId == 7){
+        console.log("No.7")
+        topic.value = "Find listitems bookprice equal 360 THB."
+        const listitemsRef = collection(db, "listitems")
+        qrylistitem = query(listitemsRef , where("purchased.bookprice", "array-contains", 360))
+        console.log(qrylistitem)
+    }else if(qryId == 8){
+        console.log("No.8")
         topic.value = "bookprice with price > 200 THB (limit 5 name)."
         const booksRef = collection(db, "books")
         qrybook = query(booksRef , where("bookprice", ">", 200),limit(5))
+    }else if(qryId == 9){
+        console.log("No.9")
+        topic.value = "Get the total price from all customers."
+        const listitemsRef = collection(db, "listitems")
+        onSnapshot(listitemsRef, (snapshot) => {
+        listitems.value = []
+        // aggData.value = null
+        let total = 0
+        snapshot.forEach((doc) => {
+            let getData = {}
+            getData = {id: doc.id, ...doc.data()}
+            // listitems.value.push(getData)
+            // aggData.value += getData.purchased.bookprice
+            getData.purchased.bookprice.forEach((price) => {
+                total += price
+            })
+        })
+        console.log(total)
+        aggData.value = total
+    })
+    }
+    else if(qryId ==10){
+        console.log("No.10")
+        topic.value = "bookpages with pages 300 to 400"
+        const booksRef = collection(db, "books")
+        qrybook = query(booksRef , where("bookpage", ">=", 300), where("bookpage", "<=" , 400))
+        console.log(qrybook)
     }
 
     // customers
@@ -124,7 +168,8 @@ async function getQuery(){
     })
     console.log(listitems.value)
     }
-;}
+}
+
 watch(() => route.params.id, getQuery)
 onMounted(() => {
     getQuery() 
@@ -132,7 +177,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <Documents :customers="customers" :books="books" :qryId="qryId" :listitems="listitems"/>
+    <Documents :customers="customers" :books="books" :qryId="qryId" :listitems="listitems" :data="aggData"/>
 </template>
 
 <style>
